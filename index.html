@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Tron Mapzen</title>
+<meta charset="utf-8">
+<meta name="description" content="">
+<meta name="author" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="">
+
+
+
+<script
+  src="https://code.jquery.com/jquery-3.2.1.js"
+  integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+  crossorigin="anonymous"></script>
+<!--[if lt IE 9]>
+<script src="//cdn.jsdelivr.net/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+<link rel="shortcut icon" href="">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
+<script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+
+<!-- style sheet for mapzen.js -->
+<link rel="stylesheet" href="https://mapzen.com/js/mapzen.css">
+<!-- latest version of mapzen.js-->
+<script src="https://mapzen.com/js/mapzen.js"></script>
+<!-- latest minified version of mapzen.js -->
+<script src="https://mapzen.com/js/mapzen.min.js"></script>
+
+<style type="text/css">
+#map {
+  height: 90%;
+  width: 100%;
+  position: absolute;
+}
+html,body{margin: 5px; padding: 0;}
+.footer {
+}
+
+.leaflet-marker-icon-color-blue   { -webkit-filter: hue-rotate( 30deg); filter: hue-rotate( 30deg); }
+.leaflet-marker-icon-color-pink   { -webkit-filter: hue-rotate( 90deg); filter: hue-rotate( 90deg); }
+.leaflet-marker-icon-color-red    { -webkit-filter: hue-rotate(150deg); filter: hue-rotate(150deg); }
+.leaflet-marker-icon-color-yellow { -webkit-filter: hue-rotate(210deg); filter: hue-rotate(210deg); }
+.leaflet-marker-icon-color-green  { -webkit-filter: hue-rotate(270deg); filter: hue-rotate(270deg); }
+.leaflet-marker-icon-color-alua   { -webkit-filter: hue-rotate(330deg); filter: hue-rotate(330deg); }
+</style>
+</head>
+
+
+
+<body>
+<div id="str">ここに町名を表示します。</div>
+<input type="button" onclick="OnButtonClick();" value="緯度経度を取得"/>
+<div id="latlon_info"></div>
+<div id="map"></div>
+
+<script>
+var arg = new Object;
+var pair=location.search.substring(1).split('&');
+for(var i=0;pair[i];i++) {
+    var kv = pair[i].split('=');
+    arg[kv[0]]=kv[1];
+}
+
+var center = [35.0157424,135.7625368];
+var zoom = 16.0;
+
+if ('lat' in arg & 'lon' in arg & 'zoom' in arg) {
+    center[0] = parseFloat(arg.lat);
+    center[1] = parseFloat(arg.lon);
+    zoom = parseFloat(arg.zoom);
+}
+
+
+// Add a Mapzen API key
+L.Mapzen.apiKey = 'mapzen-mQFhAuk';
+var map = L.Mapzen.map('map', {
+  center: center,
+  zoom: zoom,
+  debug: true,
+  tangramOptions: {
+    scene: 'scene.yaml'
+  }
+});
+// https://mapzen.com/documentation/mapzen-js/api-reference/
+
+
+var myStyle = {
+    "color": "#5e4530",
+    "weight": 3,
+    "opacity": 0.5,
+    "fillOpacity": 0
+};
+
+var myOnEachFeature = function(feature, layer) {
+        layer.on('click', function(e) {
+
+            var yomi = feature.properties.YOMI;
+            var name = feature.properties.MOJI;
+            //map.fitBounds(layer.getBounds().pad(0.1));
+            layer.setStyle({"color": "#ff7800", "opacity": 0.7, "weight": 5});
+
+            document.getElementById("str").textContent =　name + " " +  yomi; 
+        });
+};
+
+
+$.getJSON("./nakagyo.geojson", function(data) {
+    L.geoJson(data, {
+        style: myStyle,
+        onEachFeature: myOnEachFeature,
+    }).addTo(map);
+});
+
+function OnButtonClick(){
+  lat_info = map.getCenter().lat;
+  lon_info = map.getCenter().lng;
+  zoom_info = map.getZoom();
+  document.getElementById("latlon_info").textContent = "lat="+lat_info+"&lon="+lon_info+"&zoom="+zoom_info;
+}
+
+
+</script>
+
+
+
+
+</body>
+</html>
